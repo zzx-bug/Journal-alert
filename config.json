@@ -30,7 +30,7 @@
   },
   "keywords": [
     {
-      "label": "自锁结构",
+      "label": "自锁与互锁结构",
       "main": true,
       "weight": 5,
       "terms": [
@@ -44,7 +44,23 @@
         "facet binding",
         "mortise and tenon",
         "mortise-and-tenon",
-        "snap-fit"
+        "snap-fit",
+        "自锁结构",
+        "互相锁结构",
+        "互锁结构",
+        "相互锁结构",
+        "相互锁定结构",
+        "互锁系统",
+        "mutual interlocking",
+        "mutually interlocking",
+        "mutually interlocked",
+        "mutually locked",
+        "interlocking structure",
+        "interlocking structures",
+        "interlocked structure",
+        "interlocked structures",
+        "topological interlocking",
+        "topologically interlocked"
       ]
     },
     {
@@ -313,3 +329,4 @@
     "level": "INFO"
   }
 }
+
