@@ -1,12 +1,20 @@
 name: journal-alert daily
 
-# 07:30 Asia/Shanghai == 23:30 UTC (previous day). GitHub's cron is always UTC.
+# 08:00 Asia/Shanghai == 00:00 UTC. Delivery follows collection and queueing.
 # Scheduled runs can be delayed by a few minutes at peak times - harmless here.
 on:
   schedule:
-    - cron: "30 23 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
+      mode:
+        description: "运行模式：daily=正式日报，test-push=测试微信，check=检查数据源"
+        type: choice
+        options:
+          - daily
+          - test-push
+          - check
+        default: daily
       days:
         description: "覆盖时间窗（天）。留空 = 用 config.json 的自适应窗口"
         required: false
@@ -58,10 +66,17 @@ jobs:
 
       - name: Run pipeline
         env:
+          RUN_MODE: ${{ inputs.mode }}
           EXTRA_DAYS: ${{ inputs.days }}
           EXTRA_SOURCES: ${{ inputs.sources }}
         run: |
           set -eu
+          case "${RUN_MODE:-daily}" in
+            test-push) python run.py --test-push; exit 0 ;;
+            check) python run.py --check; exit 0 ;;
+            daily) ;;
+            *) echo "Invalid run mode"; exit 2 ;;
+          esac
           ARGS="--once"
           if [ -n "${EXTRA_DAYS}" ]; then ARGS="$ARGS --days ${EXTRA_DAYS}"; fi
           if [ -n "${EXTRA_SOURCES}" ]; then ARGS="$ARGS --sources ${EXTRA_SOURCES}"; fi
@@ -103,7 +118,7 @@ jobs:
       - name: Job summary
         if: always()
         run: |
-          report="reports/$(date +%F).md"
+          report="mechanics_reports/$(date +%F).md"
           if [ -f "$report" ]; then
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
           else
