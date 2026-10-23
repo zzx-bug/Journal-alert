@@ -3,9 +3,6 @@ name: journal-alert daily
 # 08:00 Asia/Shanghai == 00:00 UTC. Delivery follows collection and queueing.
 # Scheduled runs can be delayed by a few minutes at peak times - harmless here.
 on:
-  push:
-    paths:
-      - ".github/workflows/daily.yml"
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
@@ -70,7 +67,7 @@ jobs:
       - name: Run pipeline
         env:
           RUN_MODE: ${{ inputs.mode }}
-          EXTRA_DAYS: ${{ inputs.days || (github.event_name == 'push' && '7') || '' }}
+          EXTRA_DAYS: ${{ inputs.days }}
           EXTRA_SOURCES: ${{ inputs.sources }}
         run: |
           set -eu
