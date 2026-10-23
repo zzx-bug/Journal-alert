@@ -563,7 +563,7 @@ def run(args: argparse.Namespace) -> int:
         title = f"{project} · 推送通道自检"
         body = (
             "如果你在微信里看到这条消息，说明推送密钥配置成功。\n\n"
-            "正式日报会在每个工作日 07:30 自动送达，内容是当天命中的文献摘要卡片。"
+            "正式日报按仓库配置的定时任务运行，内容是当天命中的文献摘要卡片。"
         )
         results = push_module.dispatch(cfg, title, body, log)
         if not results:
@@ -592,6 +592,10 @@ def run(args: argparse.Namespace) -> int:
     if args.check:
         print_status_table(statuses)
         return 0
+
+    if not statuses or all(not status["ok"] for status in statuses):
+        log.error("all data sources unavailable; not sending a misleading empty digest")
+        return 1
 
     scorer = Scorer(
         cfg.get("keywords", []),
