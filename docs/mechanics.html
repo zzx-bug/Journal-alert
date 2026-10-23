@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>自锁与智能力学文献日报 · 文献卡片墙</title>
+<style>
+:root{
+  --bg:#f1f2f4; --card:#fff; --ink:#1c1c1e; --ink2:#63636d; --ink3:#9d9da8;
+  --line:#eeeef2; --red:#ff2442; --radius:16px;
+  --sh:0 1px 2px rgba(16,16,24,.05), 0 6px 20px rgba(16,16,24,.06);
+  --sh-hover:0 2px 6px rgba(16,16,24,.07), 0 14px 34px rgba(16,16,24,.12);
+  --air-a:#ffb27a; --air-b:#ff5f7e;
+  --rs-a:#63b3ff;  --rs-b:#3a5ce0;
+  --chem-a:#c3a0ff; --chem-b:#7048e8;
+  --bgc-a:#6ee0a8;  --bgc-b:#0b9e73;
+  --ghg-a:#f7c95c;  --ghg-b:#b87300;
+  --wx-a:#ff8494;   --wx-b:#c1121f;
+  --gis-a:#5ed6c4;  --gis-b:#0d8f9e;
+  --other-a:#c9ccd4; --other-b:#8b90a0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; padding-bottom:56px;
+}
+a{color:inherit;text-decoration:none}
+svg.ic{display:block;flex:none}
+
+.topbar{
+  position:sticky; top:0; z-index:60; background:rgba(241,242,244,.84);
+  backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px);
+  border-bottom:1px solid rgba(0,0,0,.05);
+}
+.topbar-in{max-width:1560px;margin:0 auto;padding:14px 22px 0}
+.brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{
+  width:30px;height:30px;border-radius:9px;flex:none;
+  background:linear-gradient(135deg,var(--red),#ff7a59);
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;
+  box-shadow:0 3px 10px rgba(255,36,66,.32);
+}
+.brand h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px}
+.brand .sub{font-size:12.5px;color:var(--ink3);margin-left:2px}
+.brand .spacer{flex:1}
+.kpi{display:flex;gap:6px;flex-wrap:wrap}
+.kpi span{font-size:12px;color:var(--ink2);background:#fff;border:1px solid var(--line);padding:3px 9px;border-radius:999px;white-space:nowrap}
+.kpi b{color:var(--red);font-weight:700}
+
+.controls{max-width:1560px;margin:0 auto;padding:12px 22px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  border:1px solid var(--line);background:#fff;color:var(--ink2);
+  font-size:13.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;
+  white-space:nowrap;transition:.16s;display:flex;align-items:center;gap:7px;font-family:inherit;
+}
+.tab svg{width:15px;height:15px;stroke-width:1.9}
+.tab:hover{border-color:#dcdce4;transform:translateY(-1px)}
+.tab .n{font-size:11.5px;color:var(--ink3);font-weight:600}
+.tab.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tab.on .n{color:rgba(255,255,255,.66)}
+.tab.on svg{stroke-width:2}
+.search{
+  flex:1;min-width:180px;max-width:340px;border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:8px 15px;font-size:13.5px;outline:none;font-family:inherit;color:var(--ink);transition:.16s;
+}
+.search:focus{border-color:#ffc2cc;box-shadow:0 0 0 3px rgba(255,36,66,.09)}
+.search::placeholder{color:var(--ink3)}
+.seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:2px}
+.seg button{border:0;background:transparent;font-size:12.5px;padding:5px 12px;border-radius:999px;cursor:pointer;color:var(--ink2);font-family:inherit;transition:.16s}
+.seg button.on{background:var(--ink);color:#fff;font-weight:600}
+.count{font-size:12.5px;color:var(--ink3);margin-left:auto;white-space:nowrap}
+
+.grouphead{max-width:1560px;margin:24px auto 0;padding:0 22px;display:flex;align-items:center;gap:10px}
+.grouphead h2{font-size:15.5px;margin:0;font-weight:800;display:flex;align-items:center;gap:8px}
+.grouphead h2 svg{width:18px;height:18px;stroke-width:1.9}
+.grouphead .bar{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.grouphead .gn{font-size:12.5px;color:var(--ink3);font-weight:600}
+.g-air h2{color:#e8455f} .g-rs h2{color:#3a5ce0} .g-chem h2{color:#7048e8} .g-bgc h2{color:#0b9e73} .g-ghg h2{color:#b87300} .g-wx h2{color:#c1121f} .g-gis h2{color:#0d8f9e}
+
+.wall{max-width:1560px;margin:0 auto;padding:14px 22px 0;columns:4;column-gap:16px}
+@media(max-width:1380px){.wall{columns:3}}
+@media(max-width:1000px){.wall{columns:2}}
+@media(max-width:620px){
+  .wall{columns:1}
+  .topbar-in,.controls,.wall,.grouphead{padding-left:14px;padding-right:14px}
+  .kpi{display:none}
+}
+.card{
+  break-inside:avoid; -webkit-column-break-inside:avoid; page-break-inside:avoid;
+  background:var(--card);border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--sh);margin:0 0 16px;cursor:pointer;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s;
+  display:inline-block;width:100%;vertical-align:top;
+}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh-hover)}
+
+.cover{position:relative;height:108px;overflow:hidden}
+.cover::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1px);
+  background-size:14px 14px;opacity:.45;
+}
+.t-air .cover{background:linear-gradient(135deg,var(--air-a),var(--air-b))}
+.t-rs  .cover{background:linear-gradient(135deg,var(--rs-a),var(--rs-b))}
+.t-chem .cover{background:linear-gradient(135deg,var(--chem-a),var(--chem-b))}
+.t-bgc .cover{background:linear-gradient(135deg,var(--bgc-a),var(--bgc-b))}
+.t-ghg .cover{background:linear-gradient(135deg,var(--ghg-a),var(--ghg-b))}
+.t-wx .cover{background:linear-gradient(135deg,var(--wx-a),var(--wx-b))}
+.t-gis .cover{background:linear-gradient(135deg,var(--gis-a),var(--gis-b))}
+.t-other .cover{background:linear-gradient(135deg,var(--other-a),var(--other-b))}
+.cover .icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#fff;opacity:.28;width:76px;height:76px;z-index:1}
+.cover .icon svg{width:100%;height:100%;stroke-width:1.25}
+.cover .jr{
+  position:absolute;left:12px;bottom:11px;right:60px;color:#fff;font-size:13px;font-weight:800;
+  letter-spacing:.3px;text-shadow:0 1px 6px rgba(0,0,0,.25);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2;
+}
+.cover .tp{
+  position:absolute;left:12px;top:10px;background:rgba(255,255,255,.95);color:#2a2a30;
+  font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;z-index:2;
+  box-shadow:0 1px 4px rgba(0,0,0,.1);
+}
+.cover .sc{
+  position:absolute;right:12px;top:10px;background:rgba(0,0,0,.28);color:#fff;font-size:11px;
+  font-weight:700;padding:3px 9px;border-radius:999px;z-index:2;backdrop-filter:blur(4px);
+  font-variant-numeric:tabular-nums;
+}
+.tier{position:absolute;left:0;bottom:0;height:3px;width:100%;z-index:2}
+.tier.must_read{background:#ff2442}
+.tier.worth_reading{background:#ffab2e}
+.tier.other{background:rgba(255,255,255,.6)}
+
+.body{padding:12px 14px 11px}
+.title{font-size:14.5px;font-weight:700;line-height:1.42;margin:0 0 7px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.excerpt{font-size:12.5px;line-height:1.62;color:var(--ink2);margin:0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.excerpt.none{color:var(--ink3);font-style:italic;font-size:12px;-webkit-line-clamp:2}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.tag{font-size:11px;padding:2px 8px;border-radius:6px;background:#f4f5f7;color:var(--ink2);font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag.must_read{background:#ffe9ed;color:#e01b39}
+.tag.worth_reading{background:#fff4e3;color:#c67a00}
+.tag.other{background:#f0f1f4;color:#7c8090}
+.tag.match{background:#eef4ff;color:#3a5ce0}
+.tag.cross{background:#e6f7f5;color:#0d8f9e}
+
+.foot{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--line);background:#fcfcfd}
+.av{width:22px;height:22px;border-radius:50%;flex:none;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}
+.t-air .av{background:linear-gradient(135deg,var(--air-a),var(--air-b))}
+.t-rs .av{background:linear-gradient(135deg,var(--rs-a),var(--rs-b))}
+.t-chem .av{background:linear-gradient(135deg,var(--chem-a),var(--chem-b))}
+.t-bgc .av{background:linear-gradient(135deg,var(--bgc-a),var(--bgc-b))}
+.t-ghg .av{background:linear-gradient(135deg,var(--ghg-a),var(--ghg-b))}
+.t-wx .av{background:linear-gradient(135deg,var(--wx-a),var(--wx-b))}
+.t-gis .av{background:linear-gradient(135deg,var(--gis-a),var(--gis-b))}
+.t-other .av{background:linear-gradient(135deg,var(--other-a),var(--other-b))}
+.au{font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.dt{font-size:11.5px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+.empty{max-width:1560px;margin:70px auto;text-align:center;color:var(--ink3);font-size:14px}
+.empty svg{width:44px;height:44px;margin:0 auto 12px;stroke-width:1.5;opacity:.5;display:block}
+
+.mask{position:fixed;inset:0;background:rgba(20,20,26,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.mask.on{display:flex;animation:fade .16s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:20px;max-width:760px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 24px 70px rgba(0,0,0,.3);animation:pop .2s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.mhead{position:relative;padding:18px 22px 16px;color:#fff;overflow:hidden}
+.mhead::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.26) 1px,transparent 1px);background-size:16px 16px;opacity:.4}
+.mhead .mj{font-size:12.5px;font-weight:700;opacity:.95;position:relative;z-index:2;letter-spacing:.3px}
+.mhead h3{font-size:18px;line-height:1.42;margin:8px 0 0;position:relative;z-index:2;font-weight:800;text-shadow:0 1px 8px rgba(0,0,0,.18);padding-right:26px}
+.mmeta{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:2;margin-top:11px}
+.mmeta span{background:rgba(255,255,255,.95);color:#2a2a30;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px}
+.mclose{position:absolute;right:14px;top:14px;z-index:3;border:0;cursor:pointer;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.22);color:#fff;font-size:16px;line-height:1;display:grid;place-items:center;font-family:inherit}
+.mclose:hover{background:rgba(0,0,0,.36)}
+.mbody{padding:18px 22px 22px}
+.sec-t{font-size:11.5px;font-weight:800;color:var(--ink3);letter-spacing:.8px;margin:0 0 8px}
+.abs{font-size:14px;line-height:1.78;color:#33333a;margin:0 0 20px;white-space:pre-wrap}
+.authors{font-size:13.5px;line-height:1.7;color:var(--ink2);margin:0 0 18px}
+.kv{font-size:12.5px;color:var(--ink2);line-height:1.9;margin:0 0 18px}
+.kv code{background:#f4f5f7;padding:2px 7px;border-radius:5px;font-size:12px;color:#3a3a44}
+.linkrow{display:flex;gap:9px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;padding:9px 17px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-family:inherit;transition:.16s}
+.btn:hover{border-color:#d8d8e0;transform:translateY(-1px)}
+.btn.pri{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 3px 12px rgba(255,36,66,.28)}
+.btn.pri:hover{background:#f01a38}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="logo">J</div>
+      <h1>自锁与智能力学文献日报 · 文献卡片墙</h1>
+      <span class="sub">journal-alert · 日报可视化</span>
+      <div class="spacer"></div>
+      <div class="kpi">
+        <span>总文献 <b>10</b></span>
+        <span>数据源 <b id="kpi-days">—</b> 天日报</span>
+        <span>更新 <b>2026-10-23 22:41</b></span>
+      </div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="tabs" id="tabs"></div>
+    <div class="row">
+      <input class="search" id="q" type="search" placeholder="搜索标题 / 摘要 / 作者 / 期刊…">
+      <div class="seg" id="seg">
+        <button data-t="all" class="on" type="button">全部等级</button>
+        <button data-t="must_read" type="button">必读</button>
+        <button data-t="worth_reading" type="button">值得一读</button>
+        <button data-t="other" type="button">其他相关</button>
+      </div>
+      <div class="seg" id="sortseg">
+        <button data-s="score" class="on" type="button">按得分</button>
+        <button data-s="date" type="button">按日期</button>
+        <button data-s="journal" type="button">按期刊</button>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+  </div>
+</div>
+
+<div id="wall-wrap"></div>
+
+<div class="mask" id="mask">
+  <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
+</div>
+
+<script type="application/json" id="DATA">{"articles":[{"title":"Interlocking modular assembly for scalable composite metamaterials with intrinsic self-sensing capability","url":"https://doi.org/10.1016/j.engstruct.2026.123963","doi":"10.1016/j.engstruct.2026.123963","journal":"Engineering Structures","jabbr":"Engineering Structures","pubdate":"2027-01-01（在线预发表）","topic":"自锁结构","topics":["自锁结构","智能传感"],"matchTerm":"interlocking","matchWhere":"标题：interlocking、标题：self-sensing","score":24,"authors":["Lianchao Guo","Xiang Xu","Jiale Chen","Xin Wang","Guangding Wang","Qiansheng Tang"],"authorMore":true,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":0},{"title":"Bio-inspired root-like interfacial interlocking in basalt fiber/polypropylene composites via thermodynamically driven assembly","url":"https://doi.org/10.1016/j.compscitech.2026.111904","doi":"10.1016/j.compscitech.2026.111904","journal":"Composites Science and Technology","jabbr":"Composites Science and Technology","pubdate":"2027-01-01（在线预发表）","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocking","matchWhere":"标题：interlocking","score":15,"authors":["Jing Zhou","Chun Zhang","Min Nie"],"authorMore":false,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":1},{"title":"Deep-learning based inverse design of hierarchical curved beams with prescribed nonlinear responses for multistable honeycomb structures","url":"https://doi.org/10.1016/j.engstruct.2026.123918","doi":"10.1016/j.engstruct.2026.123918","journal":"Engineering Structures","jabbr":"Engineering Structures","pubdate":"2027-01-01（在线预发表）","topic":"力学超材料","topics":["力学超材料","深度学习"],"matchTerm":"multistable","matchWhere":"标题：multistable、标题：deep-learning","score":15,"authors":["Ruixin Wang","Bin Niu"],"authorMore":false,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":2},{"title":"Transformer-based video motion magnification for vision-driven structural health monitoring: Experimental validation on lab and full-scale structures","url":"https://doi.org/10.1016/j.engstruct.2026.123958","doi":"10.1016/j.engstruct.2026.123958","journal":"Engineering Structures","jabbr":"Engineering Structures","pubdate":"2027-01-01（在线预发表）","topic":"深度学习","topics":["深度学习","智能传感"],"matchTerm":"transformer","matchWhere":"标题：transformer、标题：structural health monitoring","score":15,"authors":["Marco A. Pérez","Ricard Lado-Roigé"],"authorMore":false,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":3},{"title":"Explicit geometry optimization of cohesive interfaces: Mechanics, sensitivities, and the emergence of interlocking","url":"https://doi.org/10.1016/j.jmps.2026.106828","doi":"10.1016/j.jmps.2026.106828","journal":"Journal of the Mechanics and Physics of Solids","jabbr":"Journal of the Mechanics and Physics of Solids","pubdate":"2027-01-01（在线预发表）","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocking","matchWhere":"标题：interlocking","score":15,"authors":["Weisheng Zhang","Qi Lai","Dong Li","Xu Guo","Huajian Gao"],"authorMore":false,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":4},{"title":"Radial electromagnetic pulse interlocking (REMPI) of dissimilar 6061-T6 aluminum and SUS304 stainless steel thin-walled tubes","url":"https://doi.org/10.1016/j.tws.2026.115835","doi":"10.1016/j.tws.2026.115835","journal":"Thin-Walled Structures","jabbr":"Thin-Walled Structures","pubdate":"2027-01-01（在线预发表）","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocking","matchWhere":"标题：interlocking","score":15,"authors":["Jiageng Jin","Xinglong Wu","Guangyao Li","Junjia Cui","Hao Jiang"],"authorMore":false,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":5},{"title":"Quasi-static mechanical performance and data-driven optimization of an anti-trichiral honeycomb mortise-and-tenon structure","url":"https://doi.org/10.1016/j.tws.2026.115728","doi":"10.1016/j.tws.2026.115728","journal":"Thin-Walled Structures","jabbr":"Thin-Walled Structures","pubdate":"2027-01-01（在线预发表）","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"mortise-and-tenon","matchWhere":"标题：mortise-and-tenon","score":15,"authors":["Jianxun Du","Weisen Zhu","Chengzhou Xue","Hongchuan Cheng","Wenjuan Zhao","Yue Sun"],"authorMore":true,"abstract":"","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":6},{"title":"Scalable Interfacial Engineering of Covalently Interlocked Hierarchical CNT/Phase Change Composite for Multifunctional Thermal Management and EMI Shielding","url":"https://advanced.onlinelibrary.wiley.com/doi/10.1002/adfm.78860?af=R","doi":"10.1002/adfm.78860","journal":"Advanced Functional Materials","jabbr":"Advanced Functional Materials","pubdate":"2026-10-22","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocked","matchWhere":"标题：interlocked","score":15,"authors":["Xiaoling He","Zhihao Zhang","Bangyun Zeng","Bin Zeng","Wenjian Zhang","Delong Xie","Chengqiang Cui","Xinxin Sheng"],"authorMore":false,"abstract":"A universal dual-silanization strategy is developed to construct covalently interlocked hierarchical CF@CNT architectures for multifunctional phase change composites. The resulting materials simultaneously deliver enhanced thermal transport, efficient electromagnetic interference shielding, and superb photothermal conversion while maintaining high latent heat. This interfacial engineering approach provides a scalable platform for robust, multifunctional thermal management materials. ABSTRACT Carbon nanotube (CNT)-based hierarchical architectures offer a promising platform for engineering multifunctional materials with synergistic thermal, electrical, and optical properties. However, weak …","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":7},{"title":"In Situ Constructed Pore‐Chain Interlocked Networks in Polyimide‐Covalent Organic Framework Nanocomposites Enable Ultralow k Dielectrics for High‐Fidelity Signal Transmission","url":"https://advanced.onlinelibrary.wiley.com/doi/10.1002/adma.75481?af=R","doi":"10.1002/adma.75481","journal":"Advanced Materials","jabbr":"Advanced Materials","pubdate":"2026-10-22","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocked","matchWhere":"标题：interlocked","score":15,"authors":["Jingxin Liu","Yu Xin","Yinghui Sun","Tian Xia","Yichen Li","Yanfeng Lyu"],"authorMore":true,"abstract":"A pore-chain interlocked polyimide/COF network is constructed using amino-functionalized hollow COFs as molecular anchoring nodes. The interlocked interface restricts segmental motion and stabilizes the oriented fibrous architecture, enabling an ultralow dielectric constant of 1.50, dielectric loss of 0.001, stable dielectric performance up to 250°C, and markedly enhanced high-frequency signal transmission and crosstalk suppression for advanced electronic applications. ABSTRACT The ultralow k porous polymer dielectrics have been widely explored for Integrated circuit (IC) interconnects, 5G/6G communications, and wearable devices. However, disordered pore structures and poor interfacial …","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":8},{"title":"Nanoembossing‐Enabled Mechanical Interlocking of Monolayer Nanofibers for Device Integration","url":"https://advanced.onlinelibrary.wiley.com/doi/10.1002/adfm.78317?af=R","doi":"10.1002/adfm.78317","journal":"Advanced Functional Materials","jabbr":"Advanced Functional Materials","pubdate":"2026-10-17","topic":"自锁结构","topics":["自锁结构"],"matchTerm":"interlocking","matchWhere":"标题：interlocking","score":15,"authors":["Xinyue Lan","Duomei Tian","Carole Aimé","Juan Peng","Yong Chen"],"authorMore":false,"abstract":"Electrospun monolayer gelatin nanofibers are locked onto the surface of a microframe via a thermally activated compliant layer of the frame. This process preserves the monolayer nanofiber morphology while enabling irreversible bending and the fusion of two nanofiber monolayers deposited on opposite sides of the frame. ABSTRACT The device integration of nanofiber architectures is limited by weak interfacial adhesion and inefficient load transfer at nanofiber–substrate interfaces, leading to poor mechanical robustness and restricted processing compatibility. Here, we report a nanoembossing strategy that enables the interfacial embedding of electrospun nanofibers into lithographically … ✅ 数据源：12 本刊、24 条通道全部正常。","tier":"must_read","tierLabel":"必读","reportDate":"2026-10-23","tkey":"other","id":9}],"reports":[{"date":"2026-10-23","generated":"2026-10-23 22:41","count":10}],"topics":["自锁结构","自锁结构系统冲击","力学超材料","机器学习","深度学习","智能传感","压电材料"],"themeKeys":["air","rs","chem","bgc","ghg","wx","gis"],"topicTheme":{"空气污染":"air","遥感":"rs","大气化学":"chem","生物地球化学":"bgc","温室气体":"ghg","极端天气":"wx","城市地理信息系统":"gis"},"generated":"2026-10-23 22:41"}</script>
+<script>
+(function(){
+  var D = JSON.parse(document.getElementById('DATA').textContent);
+  var A = D.articles;
+  var TOPICS = D.topics;
+
+  /* Inline SVG rather than emoji: emoji depend on a colour-emoji font being
+     installed, and the missing-glyph box is worse than no icon at all. */
+  var P = {
+    all:   '<rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/>',
+    air:   '<path d="M3 7.5h9.6a2.6 2.6 0 1 0-2.6-2.6"/><path d="M3 12h13.2a2.6 2.6 0 1 1-2.6 2.6"/><path d="M3 16.5h6.8"/>',
+    rs:    '<circle cx="12" cy="12" r="8.6"/><ellipse cx="12" cy="12" rx="3.7" ry="8.6"/><path d="M3.4 12h17.2"/>',
+    chem:  '<path d="M9.5 2.8h5"/><path d="M10.6 2.8v5.8L6.3 16.9a2 2 0 0 0 1.8 3h7.8a2 2 0 0 0 1.8-3L15.4 8.6V2.8"/><path d="M7.9 13.6h8.2"/>',
+    bgc:   '<path d="M20.6 3.4C20.6 12 15.7 16.1 9.5 16.1H4.1C4.1 7.5 9 3.4 15.2 3.4h5.4z"/><path d="M4.1 20.6c2.2-5.8 6.1-9.1 11.3-10.5"/>',
+    ghg:   '<path d="M4.6 20v-6.2"/><path d="M2.2 15.6 4.6 13.2l2.4 2.4"/><path d="M12 20V9.4"/><path d="M9.6 11.8 12 9.4l2.4 2.4"/><path d="M19.4 20v-3.4"/><path d="M17 18.4l2.4-2.4 2.4 2.4"/>',
+    wx:    '<path d="M13.2 2.6 4.4 13.8h6.2l-1 7.6 8.8-11.2h-6.2l1-7.6z"/>',
+    gis:   '<path d="M9 3.4 3.5 5.8v14.8L9 18.2l6 2.4 5.5-2.4V3.4L15 5.8 9 3.4z"/><path d="M9 3.4v14.8"/><path d="M15 5.8v14.8"/>',
+    other: '<path d="M14 3H7.6A2 2 0 0 0 5.6 5v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7.6L14 3z"/><path d="M14 3v4.6h4.6"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="M20.2 20.2l-4.3-4.3"/>'
+  };
+  function svg(k, cls){
+    return '<svg class="'+(cls||'ic')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+         + 'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(P[k]||P.other)+'</svg>';
+  }
+
+  var state = { topic:'all', tier:'all', sort:'score', q:'' };
+
+  /* An article can hit several keyword groups at once. a.topics holds every
+     match (used for filtering); a.topic is the primary one (used for the cover
+     chip and the section grouping, so nothing is listed twice). */
+  var THEME = D.topicTheme || {};
+  function topicsOf(a){ return a.topics && a.topics.length ? a.topics : [a.topic]; }
+
+  var tabs = document.getElementById('tabs');
+  var C = {all:A.length};
+  TOPICS.forEach(function(t){ C[t]=0; });
+  A.forEach(function(a){
+    topicsOf(a).forEach(function(t){ if(C[t]!==undefined) C[t]++; });
+  });
+
+  var tabDefs = [{k:'all',label:'全部',icon:'all'}].concat(
+    TOPICS.map(function(t){ return {k:t,label:t,icon:THEME[t]||'other'}; })
+  );
+  tabDefs.forEach(function(d){
+    var b = document.createElement('button');
+    b.className = 'tab' + (d.k==='all'?' on':'');
+    b.type = 'button';
+    var n = d.k==='all' ? C.all : (C[d.k]||0);
+    b.innerHTML = svg(d.icon) + '<span>'+d.label+'</span><span class="n">'+n+'</span>';
+    b.onclick = function(){
+      state.topic = d.k;
+      [].forEach.call(tabs.children, function(x){ x.classList.toggle('on', x===b); });
+      render();
+    };
+    tabs.appendChild(b);
+  });
+
+  document.getElementById('seg').onclick = function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    state.tier = b.dataset.t;
+    [].forEach.call(this.children, function(x){ x.classList.toggle('on', x===b); });
+    render();
+  };
+  document.getElementById('sortseg').onclick = function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    state.sort = b.dataset.s;
+    [].forEach.call(this.children, function(x){ x.classList.toggle('on', x===b); });
+    render();
+  };
+  var qt;
+  document.getElementById('q').oninput = function(e){
+    clearTimeout(qt);
+    var v = e.target.value.trim().toLowerCase();
+    qt = setTimeout(function(){ state.q = v; render(); }, 130);
+  };
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function trunc(s,n){ s=s||''; return s.length>n ? s.slice(0,n)+'…' : s; }
+  function initial(name){
+    if(!name) return '?';
+    var m = /[A-Za-z]/.exec(name);
+    return m ? m[0].toUpperCase() : name.slice(0,1);
+  }
+  function isFuture(d){ return (d||'').indexOf('（在线预发表）') >= 0; }
+  function dateOf(a){ return (a.pubdate||a.reportDate||'').replace('（在线预发表）','').slice(0,10); }
+  document.getElementById('kpi-days').textContent = D.reports.length;
+
+  function select(){
+    var q = state.q;
+    var out = A.filter(function(a){
+      if(state.topic!=='all' && topicsOf(a).indexOf(state.topic)<0) return false;
+      if(state.tier!=='all' && a.tier!==state.tier) return false;
+      if(q){
+        var hay = (a.title+' '+a.abstract+' '+a.authors.join(' ')+' '+a.journal+' '+a.doi).toLowerCase();
+        if(hay.indexOf(q)<0) return false;
+      }
+      return true;
+    });
+    if(state.sort==='date'){
+      out.sort(function(x,y){ return dateOf(y).localeCompare(dateOf(x)) || ((y.score||0)-(x.score||0)); });
+    } else if(state.sort==='journal'){
+      out.sort(function(x,y){ return x.journal.localeCompare(y.journal) || ((y.score||0)-(x.score||0)); });
+    } else {
+      out.sort(function(x,y){ return ((y.score||0)-(x.score||0)) || dateOf(y).localeCompare(dateOf(x)); });
+    }
+    return out;
+  }
+
+  function cardHTML(a){
+    var tags = '<span class="tag '+a.tier+'">'+esc(a.tierLabel)+'</span>'
+             + '<span class="tag">'+esc(a.jabbr)+'</span>';
+    if(a.score!=null) tags += '<span class="tag">得分 '+a.score+'</span>';
+    if(a.matchTerm) tags += '<span class="tag match" title="命中位置：'+esc(a.matchWhere)+'">命中 '+esc(a.matchTerm)+'</span>';
+    topicsOf(a).filter(function(t){ return t!==a.topic; }).slice(0,2).forEach(function(t){
+      tags += '<span class="tag cross">也属 '+esc(t)+'</span>';
+    });
+
+    var ab = a.abstract
+      ? '<p class="excerpt">'+esc(trunc(a.abstract,200))+'</p>'
+      : '<p class="excerpt none">日报未收录摘要'+(a.matchTerm?'（命中词 '+esc(a.matchTerm)+'）':'')+' · 点击看原文</p>';
+
+    var au = esc(a.authors[0] || '佚名') + (a.authors.length>1 ? ' 等 '+(a.authors.length-1)+' 位' : '');
+
+    return '<article class="card t-'+a.tkey+'" data-id="'+a.id+'" tabindex="0">'
+      + '<div class="cover">'
+      +   '<div class="tp">'+esc(a.topic)+'</div>'
+      +   (a.score!=null ? '<div class="sc">★ '+a.score+'</div>' : '')
+      +   '<div class="icon">'+svg(a.tkey)+'</div>'
+      +   '<div class="jr">'+esc(a.jabbr)+'</div>'
+      +   '<div class="tier '+a.tier+'"></div>'
+      + '</div>'
+      + '<div class="body">'
+      +   '<h3 class="title">'+esc(a.title)+'</h3>'
+      +   ab
+      +   '<div class="tagrow">'+tags+'</div>'
+      + '</div>'
+      + '<div class="foot">'
+      +   '<div class="av">'+esc(initial(a.authors[0]))+'</div>'
+      +   '<div class="au">'+au+'</div>'
+      +   '<div class="dt">'+esc(dateOf(a))+(isFuture(a.pubdate)?' · 预发表':'')+'</div>'
+      + '</div>'
+      + '</article>';
+  }
+
+  var wrap = document.getElementById('wall-wrap');
+  var countEl = document.getElementById('count');
+  var TIER_NAME = {must_read:'必读', worth_reading:'值得一读', other:'其他相关'};
+
+  function render(){
+    var list = select();
+    var scope = (state.topic==='all' ? '全部学科' : state.topic)
+              + (state.tier==='all' ? '' : ' · '+TIER_NAME[state.tier]);
+    countEl.textContent = scope + ' ｜ ' + list.length + ' / ' + A.length + ' 篇';
+
+    if(!list.length){
+      wrap.innerHTML = '<div class="empty">'+svg('search')+'没有匹配的文献，换个关键词或学科试试</div>';
+      return;
+    }
+
+    var html = '';
+    if(state.topic==='all' && state.tier==='all' && !state.q && state.sort==='score'){
+      TOPICS.forEach(function(t){
+        var g = list.filter(function(a){ return a.topic===t; });
+        if(!g.length) return;
+        var key = THEME[t] || 'other';
+        var related = list.filter(function(a){ return topicsOf(a).indexOf(t)>=0; }).length - g.length;
+        html += '<div class="grouphead'+(key!=='other'?' g-'+key:'')+'"><h2>'+svg(key)+t+'</h2>'
+              + '<span class="gn">'+g.length+' 篇'
+              + (related>0 ? ' · 另有 '+related+' 篇跨学科命中' : '')+'</span><div class="bar"></div></div>'
+              + '<div class="wall">'+g.map(cardHTML).join('')+'</div>';
+      });
+      var rest = list.filter(function(a){ return TOPICS.indexOf(a.topic)<0; });
+      if(rest.length){
+        html += '<div class="grouphead"><h2>'+svg('other')+'其他</h2>'
+              + '<span class="gn">'+rest.length+' 篇</span><div class="bar"></div></div>'
+              + '<div class="wall">'+rest.map(cardHTML).join('')+'</div>';
+      }
+    } else {
+      html = '<div class="wall">'+list.map(cardHTML).join('')+'</div>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  var mask = document.getElementById('mask'), modal = document.getElementById('modal');
+  function openModal(id){
+    var a = A[id]; if(!a) return;
+    var authors = a.authors.length ? a.authors.join('、') + (a.authorMore?' 等':'') : '未收录作者信息';
+    modal.innerHTML =
+      '<div class="mhead" style="background:linear-gradient(135deg,var(--'+a.tkey+'-a),var(--'+a.tkey+'-b))">'
+      + '<button class="mclose" id="mclose" type="button">✕</button>'
+      + '<div class="mj">'+esc(topicsOf(a).join(' / '))+' · '+esc(a.journal)+'</div>'
+      + '<h3>'+esc(a.title)+'</h3>'
+      + '<div class="mmeta">'
+      +   '<span>'+esc(a.tierLabel)+'</span>'
+      +   (a.score!=null?'<span>得分 '+a.score+'</span>':'')
+      +   (a.pubdate?'<span>'+esc(a.pubdate)+'</span>':'')
+      +   '<span>日报 '+esc(a.reportDate)+'</span>'
+      + '</div></div>'
+      + '<div class="mbody">'
+      +   '<div class="sec-t">摘要</div>'
+      +   (a.abstract
+            ? '<p class="abs">'+esc(a.abstract)+'</p>'
+            : '<p class="abs" style="color:#9d9da8">该条日报未收录摘要。</p>')
+      +   '<div class="sec-t">作者</div><p class="authors">'+esc(authors)+'</p>'
+      +   (a.doi ? '<div class="kv">DOI：<code>'+esc(a.doi)+'</code></div>' : '')
+      +   (a.matchWhere ? '<div class="kv">关键词命中：'+esc(a.matchWhere)+'</div>' : '')
+      +   '<div class="linkrow">'
+      +     '<a class="btn pri" href="'+esc(a.url)+'" target="_blank" rel="noopener">打开原文 ↗</a>'
+      +     (a.doi?'<a class="btn" href="https://doi.org/'+esc(a.doi)+'" target="_blank" rel="noopener">DOI 链接</a>':'')
+      +     '<button class="btn" id="mcopy" type="button">复制 DOI</button>'
+      +   '</div>'
+      + '</div>';
+    mask.classList.add('on');
+    document.body.style.overflow = 'hidden';
+    var cb = document.getElementById('mclose'); if(cb) cb.onclick = closeModal;
+    var cp = document.getElementById('mcopy');
+    if(cp) cp.onclick = function(){
+      var txt = a.doi || a.url;
+      var done = function(){ cp.textContent='已复制 ✓'; setTimeout(function(){ cp.textContent='复制 DOI'; },1400); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done, function(){ cp.textContent = txt; });
+      } else { cp.textContent = txt; }
+    };
+  }
+  function closeModal(){ mask.classList.remove('on'); document.body.style.overflow=''; }
+  mask.onclick = closeModal;
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  wrap.addEventListener('click', function(e){
+    var c = e.target.closest('.card'); if(c) openModal(+c.dataset.id);
+  });
+  wrap.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ var c = e.target.closest('.card'); if(c) openModal(+c.dataset.id); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
