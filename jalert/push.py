@@ -44,7 +44,7 @@ def push_serverchan(sendkey: str, title: str, body: str) -> dict:
 def push_pushplus(token: str, title: str, body: str) -> dict:
     url = "https://www.pushplus.plus/send"
     data = json.dumps(
-        {"token": token, "title": title, "content": body, "template": "markdown"},
+        {"token": token, "title": title, "content": body, "template": "markdown", "channel": "wechat"},
         ensure_ascii=False,
     ).encode("utf-8")
     try:
