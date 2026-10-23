@@ -1,11 +1,11 @@
 name: journal-alert daily
 
-# Beijing 08:00 == 00:00 UTC; Beijing 17:00 == 09:00 UTC.
+# Beijing 06:30 == 22:30 UTC (previous day); Beijing 17:00 == 09:00 UTC.
 # Delivery follows collection and queueing.
 # Scheduled runs can be delayed by a few minutes at peak times - harmless here.
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "30 22 * * *"
     - cron: "0 9 * * *"
   workflow_dispatch:
     inputs:
@@ -42,7 +42,7 @@ jobs:
 
     env:
       # Without this the container is UTC and run.py would name the report with
-      # yesterday's date (23:30 UTC is already "tomorrow" in Beijing).
+      # yesterday's date (22:30 UTC is already "tomorrow" in Beijing).
       TZ: Asia/Shanghai
       # Push keys come from repo Secrets -> Settings -> Secrets and variables -> Actions.
       # Missing secrets expand to an empty string, and an empty key just disables
@@ -60,8 +60,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The morning uses config.json (10 articles). The afternoon has its own
-      # ignored overlay: 15 pushed articles and up to 25 in the cumulative report.
+      # The morning uses config.json (20 articles). The afternoon has its own
+      # ignored overlay: 15 pushed articles and up to 35 in the cumulative report.
       - name: Configure afternoon digest
         if: github.event_name == 'schedule' && github.event.schedule == '0 9 * * *'
         run: |
@@ -70,7 +70,7 @@ jobs:
           from pathlib import Path
           overlay = {
               "push": {"max_items": 15, "max_chars": 10000},
-              "output": {"max_entries": 25},
+              "output": {"max_entries": 35},
           }
           Path("config.local.json").write_text(
               json.dumps(overlay, ensure_ascii=False), encoding="utf-8"
