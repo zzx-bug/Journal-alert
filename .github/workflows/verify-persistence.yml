@@ -1,0 +1,45 @@
+name: verify ledger persistence
+on:
+  push:
+    paths:
+      - ".github/workflows/verify-persistence.yml"
+permissions:
+  contents: write
+concurrency:
+  group: journal-alert
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check recovered ledger and record persistence verification
+        run: |
+          python - <<'PY'
+          import sqlite3
+          from datetime import datetime
+          from jalert.state import Store
+          with Store("state/seen.sqlite") as state:
+              assert state.conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+              count = state.conn.execute("SELECT COUNT(*) FROM articles").fetchone()[0]
+              assert count >= 750, count
+              state.record_run(started=datetime.now().isoformat(timespec="seconds"),
+                  fetched=0, matched=0, new_items=0, pushed=0, report_path="",
+                  note="Persistence repair verification only; no fetching or notifications.")
+              print("Recovered ledger verified:", count, "articles; no notification sent")
+          PY
+      - name: Persist only the ledger
+        run: |
+          set -eu
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- state/seen.sqlite
+          test "$(git diff --cached --name-only)" = "state/seen.sqlite"
+          git commit -m "chore(state): verify repaired ledger persistence"
+          git push origin HEAD:main

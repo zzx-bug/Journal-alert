@@ -2,7 +2,7 @@ name: journal-alert daily
 
 # Beijing 06:30 == 22:30 UTC (previous day); Beijing 17:00 == 09:00 UTC.
 # Delivery follows collection and queueing.
-# Scheduled runs can be delayed by a few minutes at peak times - harmless here.
+# GitHub schedules may be delayed; check the run timestamp for actual delivery.
 on:
   schedule:
     - cron: "30 22 * * *"
@@ -112,7 +112,12 @@ jobs:
           set -eu
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          # Only persist generated data. Never stage workflows or other source files.
+          git add -- state/seen.sqlite mechanics_reports docs/mechanics.html
+          if git diff --cached --name-only | grep -Ev '^(state/seen\.sqlite|mechanics_reports/.*|docs/mechanics\.html)$'; then
+            echo "Unexpected staged path; refusing to commit"
+            exit 1
+          fi
           if git diff --cached --quiet; then
             echo "nothing changed"
           else
@@ -130,6 +135,8 @@ jobs:
           path: |
             logs/
             state/daily/
+            state/seen.sqlite
+            mechanics_reports/*.md
           if-no-files-found: ignore
           retention-days: 90
 
@@ -143,4 +150,3 @@ jobs:
           else
             echo "没有生成当日报告，请查看上面步骤的日志。" >> "$GITHUB_STEP_SUMMARY"
           fi
-
